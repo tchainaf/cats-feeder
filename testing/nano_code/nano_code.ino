@@ -14,7 +14,6 @@ Servo motor;  // Instance of servo motor class
 
 String gCard = "1645211228";
 String gTag ="1341922126";
-String cCard = "425313227";
 
 boolean isOpen = false;
 int tryCount = 0;
@@ -32,7 +31,7 @@ void loop() {
     readRFID();
     tryCount = 0;
   } else {
-    if (tryCount == 5) {
+    if (tryCount == 10) {
       Serial.println("No TAGs around, closing");
       closeLid();
       tryCount = 0;
@@ -60,7 +59,7 @@ void readRFID() {
   String uidString = String(rfid.uid.uidByte[0]) + String(rfid.uid.uidByte[1]) + String(rfid.uid.uidByte[2]) + String(rfid.uid.uidByte[3]);
   Serial.println(uidString);
 
-  if (uidString == gTag) {
+  if (uidString == gTag || uidString == gCard) { // Check if is a match to Gaia TAGs
     Serial.println("TAG is a match!");
     openLid();
     delay(1000);
@@ -74,13 +73,6 @@ void readRFID() {
   rfid.PCD_StopCrypto1();
   delay(1000);
   rfid.PCD_Init();
-}
-
-void printDec(byte *buffer, byte bufferSize) {
-  for (byte i = 0; i < bufferSize; i++) {
-    Serial.print(buffer[i] < 0x10 ? " 0" : " ");
-    Serial.print(buffer[i], DEC);
-  }
 }
 
 void blinkLed(int code) {
@@ -113,22 +105,22 @@ void openLid() {
   if (isOpen)
     return;
 
-  motor.write(99);
-  delay(2000);                    // Wait motor to open lid
-  motor.writeMicroseconds(1500);  // Stops motor
-
-  digitalWrite(LED_PIN, HIGH);
+  digitalWrite(LED_PIN, LOW);
   isOpen = true;
+
+  motor.write(89);
+  delay(5000);                    // Wait motor to open lid
+  motor.writeMicroseconds(1500);  // Stops motor
 }
 
 void closeLid() {
   if (!isOpen)
     return;
 
-  motor.write(89);
-  delay(2000);                    // Wait motor to close lid
-  motor.writeMicroseconds(1500);  // Stops motor
-
-  digitalWrite(LED_PIN, LOW);
+  digitalWrite(LED_PIN, HIGH);
   isOpen = false;
+
+  motor.write(99);
+  delay(3650);                    // Wait motor to close lid
+  motor.writeMicroseconds(1500);  // Stops motor
 }
